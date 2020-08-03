@@ -7,7 +7,12 @@
  */
 module.exports = app => {
   app.on(['check_suite.requested', 'check_run.rerequested'], check)
+  app.on('*', rest)
 
+  async function rest (context) {
+    context.log({ event: context.event, action: context.payload.action })
+    app.log(context)
+  }
   async function check (context) {
     const startTime = new Date()
 

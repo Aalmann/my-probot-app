@@ -94,7 +94,7 @@ default_permissions:
 
   # Retrieve security vulnerability alerts.
   # https://developer.github.com/v4/object/repositoryvulnerabilityalert/
-  vulnerability_alerts: write
+  vulnerability_alerts: read
 
   # Commit statuses.
   # https://developer.github.com/v3/apps/permissions/#permission-on-statuses
