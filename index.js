@@ -1,18 +1,36 @@
 // Checks API example
 // See: https://developer.github.com/v3/checks/ to learn more
 
+const issueCommentAdded = require('./issue-comment-added');
+
 /**
  * This is the main entrypoint to your Probot app
  * @param {import('probot').Application} app
  */
 module.exports = app => {
   app.on(['check_suite.requested', 'check_run.rerequested'], check)
-  app.on('*', rest)
+  app.on('issue_comment.created', issueCommentAdded)
+  app.on('issues.edited', async context => {
+    const params = context.issue({ body: 'Thanks for editing this issue.' })
+
+    // Post a comment on the issue
+    return context.github.issues.createComment(params)
+  })
+  app.on('check_run.completed', async context => {
+    app.log(context)
+  })
+  app.on('issue_comment.edited', async context => {
+    if (!context.isBot) {
+      const params = context.issue({ body: 'TYou have edited one comment.' })
+
+      return context.github.issues.createComment(params)
+    }
+  })
   app.on('issues.opened', async context => {
     // `context` extracts information from the event, which can be passed to
     // GitHub API calls. This will return:
     //   { owner: 'yourname', repo: 'yourrepo', number: 123, body: 'Hello World! }
-    const params = context.issue({ body: 'Hello World!' })
+    const params = context.issue({ body: 'Hello World again!' })
 
     // Post a comment on the issue
     return context.github.issues.createComment(params)
