@@ -10,6 +10,7 @@ const issueCommentAdded = require('./issue-comment-added');
 module.exports = app => {
   app.on(['check_suite.requested', 'check_run.rerequested'], check)
   app.on('issue_comment.created', issueCommentAdded)
+  app.on('pull_request.edited', check_while_PR_created)
   app.on('issues.edited', async context => {
     const params = context.issue({ body: 'Thanks for editing this issue.' })
 
@@ -22,6 +23,14 @@ module.exports = app => {
   app.on('issue_comment.edited', async context => {
     if (!context.isBot) {
       const params = context.issue({ body: 'TYou have edited one comment.' })
+
+      return context.github.issues.createComment(params)
+    }
+  })
+  
+  app.on('pull_request.opened', async context => {
+    if (!context.isBot) {
+      const params = context.issue({ body: 'Thanks for creating this awesome PR.' })
 
       return context.github.issues.createComment(params)
     }
@@ -60,7 +69,26 @@ module.exports = app => {
       }
     }))
   }
+  async function check_while_PR_created (context) {
+    const startTime = new Date()
 
+    // Do stuff
+    const { ref: headBranch, sha: headSha } = context.payload.pull_request.head
+    // Probot API note: context.repo() => {username: 'hiimbex', repo: 'testing-things'}
+    return context.github.checks.create(context.repo({
+      name: 'This checkwas created with the PR',
+      head_branch: headBranch,
+      head_sha: headSha,
+      status: 'completed',
+      started_at: startTime,
+      conclusion: 'success',
+      completed_at: new Date(),
+      output: {
+        title: 'Probot check created with PR',
+        summary: 'The check has passed!'
+      }
+    }))
+  }
   // For more information on building apps:
   // https://probot.github.io/docs/
 
